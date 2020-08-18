@@ -449,12 +449,37 @@ p_swe_pde2
 
 The W-J raw score is the number of items answered correctly before reaching the ceiling rule (6 highest items that were administered are incorrect)
 
-```{r w-j plots, echo=FALSE}
+```{r w-j plots, echo=FALSE, message=FALSE}
 
 # TO-DO: Scatter (x = Age, y = Raw Score)
 
+p_wj_1 <- ggplot(b2_clean, aes(x = age, y = wj_raw)) + 
+  geom_point(aes(color = grade)) +
+  geom_smooth(method = "lm", se = T, linetype = "dashed", color = "grey") + 
+  labs(title = "W-J Letter-Word ID Raw Scores", 
+       x = "Age",
+       y = "W-J Raw Score (# correct items)") +
+  scale_x_continuous(breaks = seq(5, 9, by=0.5)) + # adjusting x axis
+  theme_classic()
+
+p_wj_1
 
 # TO-DO: Density
+
+p_wj_2 <- ggplot(b2_clean, aes(x = wj_raw, fill = grade)) +
+  #geom_histogram(aes(y = ..density..), position = "identity", alpha = 0.3) +
+  #geom_histogram(aes(y = ..density..), color = "black", fill = "white") +
+  geom_density(alpha = 0.3) +
+  geom_vline(data = b2_clean_means, 
+             aes(xintercept = wj_raw, color = grade),
+             linetype = "dashed") +
+  labs(title = "W-J Raw Scores",
+       x = "Raw Score (# correct)",
+       y = "Density",
+       caption = "Dotted lines indicate raw score means by grade") +
+  theme_classic()
+
+p_wj_2
 
 
 ```
@@ -477,3 +502,4 @@ p_all_corr <- b2_clean %>%
 
 ```
 
+testing
