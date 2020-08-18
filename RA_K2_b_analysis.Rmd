@@ -367,17 +367,6 @@ The Letter Naming raw score is the time (in seconds) it takes to name all the le
 
 # TO-DO: Scatter (Color and Letter)
 
-p_clr_ltr <- ggplot(b2_clean, aes(x = ctopp_c_raw, y = ctopp_l_raw)) + 
-  geom_point(aes(color = grade)) +
-  geom_smooth(method = "lm", se = T, linetype = "dashed", color = "grey") + 
-  labs(title = "CTOPP Color and Letter (raw scores)", 
-       x = "Color Naming Raw Score (time to finish in seconds)",
-       y = "Letter Naming Raw Score (time to finish in seconds)",
-       caption = "Lower raw score = better performance, Higher raw score = worse performance") +
-  theme_classic()
-
-p_clr_ltr
-
 
 # TO-DO: Scatter (Letter and Elision)
 
