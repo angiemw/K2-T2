@@ -13,6 +13,10 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
+# data files you'll need:
+# K2_T1_BehavioralData_20200820.csv
+# K2_T2_BehavioralData_20200728.csv
+
 # load libraries
 library(Hmisc)      # for correlation matrix
 library(psych)      # for descriptive statistics
@@ -24,13 +28,16 @@ library(corrplot)   # for making correlogram
 library(forcats)    # for reordering factor levels
 library(tidyverse)  # for data wrangling
 
+# knitr: knit to html to avoid the need need to install TeX; you can still 
+# save as a PDF in html by using Print webpage -> Save as PDF.
+
 ```
 
 # Background
 
-The K-2 project is a multi-timepoint study with Kindergarteners, 1st graders, and 2nd graders (ages 5 to 8) at Synapse. This report outlines the behavioral data that we collected in Time 1 (in-person) and Time 2 (remote).
+The K-2 project is a multi-time point study with Kindergarteners, 1st graders, and 2nd graders (ages 5 to 8) at Synapse. This report outlines the behavioral data that we collected in Time 1 (in-person) and Time 2 (remote).
 
-N = 43 participants participated in both time points.
+**N = 43** participants participated in both time points.
 
 | T1 | T2 |
 |-|-|
@@ -111,7 +118,7 @@ b_both <- inner_join(b1_clean, b2_clean, by = c("pid", "grade"))
 
 ```
 
-## Grade breakdown
+## Participant breakdown
 ```{r grade breakdown, echo=FALSE, message=FALSE}
 
 # make a table of grades
@@ -123,7 +130,7 @@ b_all_grades <- b_both %>% group_by(grade) %>% summarise(Both = n()) %>%
   rename(Grade = grade) %>% 
   select(Grade, T1, T2, Both)
 
-# adding totals to the grade table
+# adding a row for total numbers
 b_all_grades <- rbind(b_all_grades, 
                       data.frame(Grade = 'Total', 
                                  T1 = sum(b_all_grades$T1),
@@ -150,7 +157,7 @@ Then combined time points using an inner join by pid.
 
 ```{r view combined data, echo=FALSE}
 
-b_both
+b_both # this will show up in the rendered html
 ```
 
 # Descriptive Statistics 
@@ -160,6 +167,7 @@ b_both
 
 # using stat.desc() from pastecs package
 
+# t1 desc stats, include norm stats
 b1_clean_desc <- b1_clean %>% 
   select(- c(pid, grade, t1.age_year)) %>%
   stat.desc(norm = T, p = 0.95) 
@@ -177,6 +185,7 @@ kable(b1_clean_desc,
 ## T2
 ```{r t2 desc stats, echo=FALSE}
 
+# t2 desc stats, include norm stats
 b2_clean_desc <- b2_clean %>% 
   select(- c(pid, grade, t2.age_year)) %>%
   stat.desc(norm = T, p = 0.95)
@@ -193,22 +202,24 @@ kable(b2_clean_desc,
 
 ```{r calculate means, echo=FALSE}
 
-# Calculate means by grade, use for plots later
+# calculate means by grade, use for plots later
 
+# t1 means
 b1_clean_means <- b1_clean %>%
   select(-pid, -t1.age_year) %>% 
   group_by(grade) %>% 
   summarise_all("mean", na.rm=TRUE)
-
+# split by grade
 b1_clean_means_K <- b1_clean_means %>% filter(grade == "K")
 b1_clean_means_1 <- b1_clean_means %>% filter(grade == "1")
 b1_clean_means_2 <- b1_clean_means %>% filter(grade == "2")
 
+# t2 means
 b2_clean_means <- b2_clean %>%
   select(-pid, -t2.age_year) %>% 
   group_by(grade) %>% 
   summarise_all("mean", na.rm=TRUE)
-
+# split by grade
 b2_clean_means_K <- b2_clean_means %>% filter(grade == "K")
 b2_clean_means_1 <- b2_clean_means %>% filter(grade == "1")
 b2_clean_means_2 <- b2_clean_means %>% filter(grade == "2")
@@ -221,9 +232,98 @@ b2_clean_means_2 <- b2_clean_means %>% filter(grade == "2")
 
 ## CTOPP Rapid Color Naming
 
-The Color Naming raw score is the **time (in seconds)** it takes to name all the colors on the page.
+The Color Naming raw score is the **time (in seconds)** it takes to name all the colors on the page (lower raw score = better performance).
 
-```{r ctopp color plots, echo=FALSE}
+### By age
+```{r ctopp color scatter by timept, echo=F, results='hide', fig.width=10, fig.height=5}
+
+# t1 ctopp color scatter (x = age, y = raw)
+p_cc_1 <- b1_clean %>% 
+  drop_na(t1.ctopp_c_raw) %>% 
+  ggplot(aes(x = t1.age, y = t1.ctopp_c_raw, color = grade)) + 
+  geom_point() +
+  scale_x_continuous(breaks = seq(5, 9, by = 0.5)) +
+  labs(title = "T1: CTOPP Color Raw Scores (N = 56)", 
+       x = "Age",
+       y = "Raw Score (seconds)") +
+  theme_classic()
+
+# t2 ctopp color scatter (x = age, y = raw)
+p_cc_2 <- b2_clean %>% 
+  drop_na(t2.ctopp_c_raw) %>% 
+  ggplot(aes(x = t2.age, y = t2.ctopp_c_raw, color = grade)) + 
+  geom_point() +
+  scale_x_continuous(breaks = seq(5, 9, by = 0.5)) +
+  labs(title = "T2: CTOPP Color Raw Scores (N = 52)", 
+       x = "Age",
+      y = "Raw Score (seconds)") +
+  theme_classic()
+
+# arrange plots side by side
+ggarrange(p_cc_1, p_cc_2,
+          common.legend = TRUE,
+          legend = "bottom")
+```
+
+### Density plots by grade
+
+Dotted lines indicate raw score means by grade.
+
+```{r ctopp color density by timept, echo=F, results='hide', fig.width=10, fig.height=5}
+
+# t1 ctopp color density
+p_cc_3 <- b1_clean %>% 
+  drop_na(t1.ctopp_c_raw) %>% 
+  ggplot(aes(x = t1.ctopp_c_raw, fill = grade)) +
+  geom_density(alpha = 0.3) +
+  geom_vline(data = b1_clean_means, 
+             aes(xintercept = t1.ctopp_c_raw, color = grade),
+             linetype = "dashed") +
+  labs(title = "T1: CTOPP Color Raw Scores (N = 56)",
+       x = "Raw Score (seconds)",
+       y = "Density") +
+  theme_classic()
+
+# t2 ctopp color density
+p_cc_4 <- b2_clean %>% 
+  drop_na(t2.ctopp_c_raw) %>% 
+  ggplot(aes(x = t2.ctopp_c_raw, fill = grade)) +
+  geom_density(alpha = 0.3) +
+  geom_vline(data = b2_clean_means, 
+             aes(xintercept = t2.ctopp_c_raw, color = grade),
+             linetype = "dashed") +
+  labs(title = "T2: CTOPP Color Raw Scores (N = 52)",
+       x = "Raw Score (seconds)",
+       y = "Density") +
+  theme_classic()
+
+# arrange plots side by side
+ggarrange(p_cc_3, p_cc_4,
+          common.legend = TRUE,
+          legend = "bottom")
+
+```
+
+### Both time points
+```{r ctopp color t1-t2, echo=FALSE, fig.width=8, fig.height=5}
+
+# t1-t2 ctopp color scatterplot of raw scores
+p_cc_5 <- ggplot(b_both, aes(x = t1.ctopp_c_raw, y = t2.ctopp_c_raw)) + 
+  geom_point(aes(color = grade)) +
+  geom_smooth(method = "lm", se = T, linetype = "dashed", color = "grey") + 
+  labs(title = "T1-T2: CTOPP Color Raw Scores (N = 43)", 
+       x = "T1 Raw Score",
+       y = "T2 Raw Score") +
+  theme_classic()
+
+p_cc_5
+
+# TO-DO: linear regression
+
+# just testing this for now...
+lm_cc <- lm(t2.ctopp_c_raw ~ t1.ctopp_c_raw, data = b_both)
+print(lm_cc)
+print(summary(lm_cc))
 
 ```
 
@@ -231,18 +331,161 @@ The Color Naming raw score is the **time (in seconds)** it takes to name all the
 
 The Letter Naming raw score is the **time (in seconds)** it takes to name all the letters on the page.
 
+### By age
+```{r ctopp letter scatter by timept, echo=F, results='hide', fig.width=10, fig.height=5}
+
+# t1 ctopp letter scatter (x = age, y = raw)
+p_cl_1 <- b1_clean %>% 
+  drop_na(t1.ctopp_l_raw) %>% 
+  ggplot(aes(x = t1.age, y = t1.ctopp_l_raw, color = grade)) + 
+  geom_point() +
+  scale_x_continuous(breaks = seq(5, 9, by = 0.5)) +
+  labs(title = "T1: CTOPP Letter Raw Scores (N = 55)", 
+       x = "Age", 
+       y = "Raw Score (seconds)") +
+  theme_classic()
+
+# t2 ctopp letter scatter (x = age, y = raw)
+p_cl_2 <- b2_clean %>% 
+  drop_na(t2.ctopp_l_raw) %>% 
+  ggplot(aes(x = t2.age, y = t2.ctopp_l_raw, color = grade)) + 
+  geom_point() +
+  scale_x_continuous(breaks = seq(5, 9, by = 0.5)) +
+  labs(title = "T2: CTOPP Letter Raw Scores (N = 53)",         
+       x = "Age",
+       y = "Raw Score (seconds)") +
+  theme_classic()
+
+# arrange plots side by side
+ggarrange(p_cl_1, p_cl_2,
+          common.legend = TRUE,
+          legend = "bottom")
+```
+
+### Density plots by grade
+
+Dotted lines indicate raw score means by grade.
+
+```{r ctopp letter density by timept, echo=F, results='hide', fig.width=10, fig.height=5}
+
+# t1 ctopp letter density
+p_cl_3 <- b1_clean %>% 
+  drop_na(t1.ctopp_l_raw) %>% 
+  ggplot(aes(x = t1.ctopp_l_raw, fill = grade)) +
+  geom_density(alpha = 0.3) +
+  geom_vline(data = b1_clean_means, 
+             aes(xintercept = t1.ctopp_l_raw, color = grade),
+             linetype = "dashed") +
+  labs(title = "T1: CTOPP Letter Raw Scores (N = 55)",
+       x = "Raw Score (seconds)",
+       y = "Density") +
+  theme_classic()
+
+# t2 ctopp letter density
+p_cl_4 <- b2_clean %>% 
+  drop_na(t2.ctopp_l_raw) %>% 
+  ggplot(aes(x = t2.ctopp_l_raw, fill = grade)) +
+  geom_density(alpha = 0.3) +
+  geom_vline(data = b2_clean_means, 
+             aes(xintercept = t2.ctopp_l_raw, color = grade),
+             linetype = "dashed") +
+  labs(title = "T2: CTOPP Letter Raw Scores (N = 53)",
+       x = "Raw Score (seconds)",
+       y = "Density") +
+  theme_classic()
+
+# arrange plots side by side
+ggarrange(p_cl_3, p_cl_4,
+          common.legend = TRUE,
+          legend = "bottom")
+
+```
+
+### Both time points
+```{r ctopp letter t1-t2, echo=FALSE, fig.width=8, fig.height=5}
+
+# t1-t2 ctopp letter scatterplot of raw scores
+p_cl_5 <- b_both %>% 
+  drop_na(t1.ctopp_l_raw, t2.ctopp_l_raw) %>% 
+  ggplot(aes(x = t1.ctopp_l_raw, y = t2.ctopp_l_raw)) + 
+    geom_point(aes(color = grade)) +
+    geom_smooth(method = "lm", se = T, linetype = "dashed", color = "grey") + 
+    labs(title = "T1-T2: CTOPP Letter Raw Scores (N = 42)", 
+         x = "T1 Raw Score",
+         y = "T2 Raw Score") +
+  theme_classic()
+
+p_cl_5
+
+# TO-DO: linear regression
+
+# just testing this for now...
+lm_cc <- lm(t2.ctopp_l_raw ~ t1.ctopp_l_raw, data = b_both)
+print(lm_cc)
+print(summary(lm_cc))
+
+```
 ## CTOPP Elision (T2 Only)
 
 The Elision raw score is the **number of items answered correctly** before reaching the ceiling rule (3 in a row incorrect).
+
+```{r elision plots, echo=F, fig.width=10, fig.height=5}
+
+# t2 ctopp elision scatter (x = age, y = raw)
+p_ce_1 <- b2_clean %>% 
+  ggplot(aes(x = t2.age, y = t2.elision_raw, color = grade)) + 
+  geom_point() +
+  scale_x_continuous(breaks = seq(5, 9, by=0.5)) + 
+  labs(title = "CTOPP Elision Raw Scores", 
+       x = "Age",
+       y = "Raw Score (# correct)") +
+  theme_classic()
+
+# t2 ctopp elision density
+p_ce_2 <- b2_clean %>% 
+  ggplot(aes(x = t2.elision_raw, fill = grade)) +
+  geom_density(alpha = 0.3) +
+  geom_vline(data = b2_clean_means, 
+             aes(xintercept = t2.elision_raw, color = grade),
+             linetype = "dashed") +
+  labs(title = "CTOPP Elision Raw Scores",
+       x = "Raw Score (# correct)",
+       y = "Density") +
+  theme_classic()
+
+# arrange plots side by side
+ggarrange(p_ce_1, p_ce_2,
+          common.legend = TRUE,
+          legend = "bottom")
+
+```
 
 ## TOWRE Sight Word Efficiency
 
 The Sight Word Efficiency (SWE) raw score is the **number of words read correctly** in 45 seconds.
 
+```{r swe, echo=F}
+
+# TO-DO
+
+```
+
 ## TOWRE Phonemic Decoding Efficiency
 
 The Phonemic Decoding Efficiency (PDE) raw score is the **number of non-words read correctly** in 45 seconds.
 
+```{r pde, echo=F}
+
+# TO-DO
+
+```
+
 ## W-J Letter-Word Identification
 
 The W-J raw score is the **number of items answered correctly** before reaching the ceiling rule (6 highest items that were administered are incorrect).
+
+```{r wj, echo=F}
+
+# TO-DO
+
+```
