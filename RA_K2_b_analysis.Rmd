@@ -7,6 +7,11 @@ output:
   pdf: default
 ---
 
+# About this File
+
+This is the RA practice version! See *K2_T1_T2_Behavioral.Rmd* for the actual T1-T2 script.
+
+# Markdown
 Text in these white spaces will appear in your rendered file as text.
 <!--But this text won't appear!-->
 
@@ -194,6 +199,8 @@ b_all_grades <- rbind(b_all_grades,
                                  T1 = sum(b_all_grades$T1),
                                  T2 = sum(b_all_grades$T2),
                                  Both = sum(b_all_grades$Both)))
+
+b_all_grades
 
 # format table for rendered file
 kable(b_all_grades, 
@@ -623,9 +630,7 @@ p_swe_pde_1 <- ggplot(b2_clean, aes(x = swe_raw, y = pde_raw)) +
   labs(title = "TOWRE SWE and PDE (raw scores)", 
        x = "SWE Raw Score (words read correctly)",
        y = "PDE Raw Score (nonwords read correctly)",
-       caption = paste("r = ", 
-                       round(cor(b2_clean$swe_raw, b2_clean$pde_raw, use="complete.obs"), 2), 
-                       "(excludes 3 subjects with NAs)")) +
+       caption = "excludes 3 subjects with NAs") +
   theme_classic()
 
 p_swe_pde_1
@@ -637,9 +642,7 @@ p_swe_pde_2 <- ggplot(b2_clean, aes(x = swe_raw, y = pde_raw, color = grade)) +
   labs(title = "TOWRE SWE and PDE (raw scores)", 
        x = "SWE Raw Score (words read correctly)",
        y = "PDE Raw Score (nonwords read correctly)",
-       caption = paste("r = ", 
-                       round(cor(b2_clean$swe_raw, b2_clean$pde_raw, use="complete.obs"), 2), 
-                       "(excludes 3 subjects with NAs)")) +
+       caption = "excludes 3 subjects with NAs") +
   theme_classic()
 
 p_swe_pde_2
@@ -714,6 +717,8 @@ p_both_corr <- b_both %>%
 ```
 
 ```{r paired plots, echo=FALSE}
+
+# trying out paired plots 
 
 p_wj_pair_all <- b_both %>%
   rename(T1_WJ = t1.wj_raw, T2_WJ = wj_raw) %>% 
