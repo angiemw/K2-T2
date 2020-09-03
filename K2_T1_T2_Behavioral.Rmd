@@ -23,7 +23,7 @@ library(psych)      # for descriptive statistics
 library(pastecs)    # for descriptive statistics
 library(knitr)      # for knitting to pdf
 library(kableExtra) # for making pretty tables
-library(DT)         # for displaying tables in rendered html
+library(DT)         # for rendering interactive html tables
 library(ggpubr)     # for arranging plots
 library(corrplot)   # for making correlogram
 library(forcats)    # for reordering factor levels
@@ -31,6 +31,14 @@ library(tidyverse)  # for data wrangling
 
 # knitr: knit to html to avoid the need need to install TeX; you can still 
 # save as a PDF in html by using Print webpage -> Save as PDF.
+
+# variable naming:
+# cc = ctopp color
+# cl = ctopp letter
+# ce = ctopp elision
+# swe = towre swe
+# pde = towre pde
+# wj = w-j letter-word id
 
 ```
 
@@ -282,11 +290,11 @@ T2
 ```{r inspect and remove cc outliers, echo=F}
 
 # look at t1 and t2 scores
-cc_outliers <- b_all %>% 
+outliers_cc <- b_all %>% 
   filter(pid == "BLC_264" | pid == "BLC_219" | pid == "BLC_226") %>% 
   select(pid, grade, t1.ctopp_c_raw, t2.ctopp_c_raw)
 
-cc_outliers
+outliers_cc
 
 ```
 
@@ -298,7 +306,7 @@ Dotted lines indicate raw score means by grade.
 ```{r ctopp color density by timept, echo=F, results='hide', fig.width=10, fig.height=5}
 
 # t1 ctopp color density
-p_cc_3 <- b1_clean %>% 
+p_cc_d1 <- b1_clean %>% 
   drop_na(t1.ctopp_c_raw) %>% 
   ggplot(aes(x = t1.ctopp_c_raw, fill = grade)) +
   geom_density(alpha = 0.3) +
@@ -311,7 +319,7 @@ p_cc_3 <- b1_clean %>%
   theme_classic()
 
 # t2 ctopp color density
-p_cc_4 <- b2_clean %>% 
+p_cc_d2 <- b2_clean %>% 
   drop_na(t2.ctopp_c_raw) %>% 
   ggplot(aes(x = t2.ctopp_c_raw, fill = grade)) +
   geom_density(alpha = 0.3) +
@@ -324,7 +332,7 @@ p_cc_4 <- b2_clean %>%
   theme_classic()
 
 # arrange plots side by side
-ggarrange(p_cc_3, p_cc_4, common.legend = TRUE, legend = "bottom")
+ggarrange(p_cc_d1, p_cc_d2, common.legend = TRUE, legend = "bottom")
 
 ```
 
@@ -333,7 +341,7 @@ ggarrange(p_cc_3, p_cc_4, common.legend = TRUE, legend = "bottom")
 ```{r cc scatterplots, echo=F, message=F, fig.width=10, fig.height=5}
 
 # t1 ctopp color scatter (x = age, y = raw)
-p_cc_1 <- b1_clean %>% 
+p_cc_s1 <- b1_clean %>% 
   drop_na(t1.ctopp_c_raw) %>% 
   ggplot(aes(x = t1.age, y = t1.ctopp_c_raw)) + 
   geom_point(aes(color = grade)) +
@@ -346,7 +354,7 @@ p_cc_1 <- b1_clean %>%
   theme_light()
 
 # t2 ctopp color scatter (x = age, y = raw)
-p_cc_2 <- b2_clean %>% 
+p_cc_s2 <- b2_clean %>% 
   drop_na(t2.ctopp_c_raw) %>% 
   ggplot(aes(x = t2.age, y = t2.ctopp_c_raw)) + 
   geom_point(aes(color = grade)) +
@@ -359,7 +367,7 @@ p_cc_2 <- b2_clean %>%
   theme_light()
 
 # arrange plots side by side
-ggarrange(p_cc_1, p_cc_2, common.legend = TRUE, legend = "bottom")
+ggarrange(p_cc_s1, p_cc_s2, common.legend = TRUE, legend = "bottom")
 
 ```
 
@@ -382,7 +390,7 @@ Subjects who completed both time points.
 ```{r ctopp color t1-t2, echo=F, message=F, fig.width=8, fig.height=5}
 
 # t1-t2 ctopp color scatterplot of raw scores
-p_cc_5 <- ggplot(b_both, aes(x = t1.ctopp_c_raw, y = t2.ctopp_c_raw)) + 
+p_cc_12 <- ggplot(b_both, aes(x = t1.ctopp_c_raw, y = t2.ctopp_c_raw)) + 
   geom_point(aes(color = grade)) +
   geom_smooth(method = "lm", se = T, linetype = "solid", color = "grey") + 
   labs(title = "T1-T2: CTOPP Color Raw Scores (N = 43)", 
@@ -390,7 +398,7 @@ p_cc_5 <- ggplot(b_both, aes(x = t1.ctopp_c_raw, y = t2.ctopp_c_raw)) +
        y = "T2 Raw Score") +
   theme_light()
 
-p_cc_5
+p_cc_12
 
 # linear regression
 lm_cc <- lm(t2.ctopp_c_raw ~ t1.ctopp_c_raw, data = b_both)
@@ -450,11 +458,11 @@ T2
 ```{r inspect and remove cl outliers, echo=F}
 
 # look at t1 and t2 scores
-cl_outliers <- b_all %>% 
+outliers_cl <- b_all %>% 
   filter(pid == "BLC_247" | pid == "BLC_258" | pid == "BLC_233") %>% 
   select(pid, grade, t1.ctopp_l_raw, t2.ctopp_l_raw)
 
-cl_outliers
+outliers_cl
 
 ```
 
@@ -465,7 +473,7 @@ Dotted lines indicate raw score means by grade.
 ```{r ctopp letter density by timept, echo=F, results='hide', fig.width=10, fig.height=5}
 
 # t1 ctopp letter density
-p_cl_3 <- b1_clean %>% 
+p_cl_d1 <- b1_clean %>% 
   drop_na(t1.ctopp_l_raw) %>% 
   ggplot(aes(x = t1.ctopp_l_raw, fill = grade)) +
   geom_density(alpha = 0.3) +
@@ -478,7 +486,7 @@ p_cl_3 <- b1_clean %>%
   theme_classic()
 
 # t2 ctopp letter density
-p_cl_4 <- b2_clean %>% 
+p_cl_d2 <- b2_clean %>% 
   drop_na(t2.ctopp_l_raw) %>% 
   ggplot(aes(x = t2.ctopp_l_raw, fill = grade)) +
   geom_density(alpha = 0.3) +
@@ -491,7 +499,7 @@ p_cl_4 <- b2_clean %>%
   theme_classic()
 
 # arrange side by side
-ggarrange(p_cl_3, p_cl_4, common.legend = TRUE, legend = "bottom")
+ggarrange(p_cl_d1, p_cl_d2, common.legend = TRUE, legend = "bottom")
 
 ```
 
@@ -499,7 +507,7 @@ ggarrange(p_cl_3, p_cl_4, common.legend = TRUE, legend = "bottom")
 ```{r ctopp letter scatterplots, echo=F, message=F, fig.width=10, fig.height=5}
 
 # t1 ctopp letter scatter (x = age, y = raw)
-p_cl_1 <- b1_clean %>% 
+p_cl_s1 <- b1_clean %>% 
   drop_na(t1.ctopp_l_raw) %>% 
   ggplot(aes(x = t1.age, y = t1.ctopp_l_raw)) + 
   geom_point(aes(color = grade)) +
@@ -512,7 +520,7 @@ p_cl_1 <- b1_clean %>%
   theme_light()
 
 # t2 ctopp letter scatter (x = age, y = raw)
-p_cl_2 <- b2_clean %>% 
+p_cl_s2 <- b2_clean %>% 
   drop_na(t2.ctopp_l_raw) %>% 
   ggplot(aes(x = t2.age, y = t2.ctopp_l_raw)) + 
   geom_point(aes(color = grade)) +
@@ -525,7 +533,7 @@ p_cl_2 <- b2_clean %>%
   theme_light()
 
 # arrange side by side
-ggarrange(p_cl_1, p_cl_2, common.legend = TRUE, legend = "bottom")
+ggarrange(p_cl_s1, p_cl_s2, common.legend = TRUE, legend = "bottom")
 
 ```
 
@@ -536,7 +544,7 @@ Subjects who completed both time points.
 ```{r ctopp letter t1-t2, echo=F, message=F, fig.width=8, fig.height=5}
 
 # t1-t2 ctopp letter scatterplot of raw scores
-p_cl_5 <- b_both %>% 
+p_cl_12 <- b_both %>% 
   drop_na(t1.ctopp_l_raw, t2.ctopp_l_raw) %>% 
   ggplot(aes(x = t1.ctopp_l_raw, y = t2.ctopp_l_raw)) + 
     geom_point(aes(color = grade)) +
@@ -546,7 +554,7 @@ p_cl_5 <- b_both %>%
          y = "T2 Raw Score") +
   theme_light()
 
-p_cl_5
+p_cl_12
 
 # linear regression (t2 raw ~ t1 raw)
 lm_cl <- lm(t2.ctopp_l_raw ~ t1.ctopp_l_raw, data = b_both)
@@ -561,7 +569,7 @@ The Elision raw score is the **number of items answered correctly** before reach
 ```{r elision boxplot, echo=F, fig.width=10, fig.height=5}
 
 # t2 elision boxplot
-p_ce_b1 <- b2_clean %>% 
+p_ce_b2 <- b2_clean %>% 
   drop_na(t2.elision_raw) %>% 
   ggplot(aes(x = grade, y = t2.elision_raw)) +
   geom_boxplot(aes(color = grade)) +
@@ -571,7 +579,7 @@ p_ce_b1 <- b2_clean %>%
        y = "Raw Score (# correct)") +
   theme_light()
 
-p_ce_b1
+p_ce_b2
 
 ```
 
@@ -582,7 +590,7 @@ Inspect low scores. Checking session notes:
 ```{r elision plots, echo=F, message=F, fig.width=10, fig.height=5}
 
 # t2 ctopp elision density
-p_ce_2 <- b2_clean %>% 
+p_ce_d2 <- b2_clean %>% 
   ggplot(aes(x = t2.elision_raw, fill = grade)) +
   geom_density(alpha = 0.3) +
   geom_vline(data = b2_clean_means, 
@@ -594,7 +602,7 @@ p_ce_2 <- b2_clean %>%
   theme_classic()
 
 # t2 ctopp elision scatter (x = age, y = raw)
-p_ce_1 <- b2_clean %>% 
+p_ce_s2 <- b2_clean %>% 
   ggplot(aes(x = t2.age, y = t2.elision_raw)) + 
   geom_point(aes(color = grade)) +
   geom_smooth(method = "lm", se = T, linetype = "solid", color = "grey") +
@@ -605,7 +613,7 @@ p_ce_1 <- b2_clean %>%
   theme_classic()
 
 # arrange side by side
-ggarrange(p_ce_1, p_ce_2, common.legend = TRUE, legend = "bottom")
+ggarrange(p_ce_d2, p_ce_s2, common.legend = TRUE, legend = "bottom")
 
 ```
 
@@ -663,11 +671,11 @@ Both BLC_205 and BLC_258 show lower scores for TOWRE as a whole.
 ```{r inspect and remove swe outliers, echo=F}
 
 # look at t1 and t2 scores
-swe_outliers <- b_all %>% 
+outliers_swe <- b_all %>% 
   filter(pid == "BLC_205" | pid == "BLC_258") %>% 
   select(pid, grade, t1.swe_raw, t2.swe_raw, t1.pde_raw, t2.pde_raw)
 
-swe_outliers
+outliers_swe
 
 ```
 
@@ -675,7 +683,7 @@ swe_outliers
 ```{r swe density, echo=F, fig.width=10, fig.height=5}
 
 # t1 swe density
-p_swe_3 <- b1_clean %>% 
+p_swe_d1 <- b1_clean %>% 
   drop_na(t1.swe_raw) %>% 
   ggplot(aes(x = t1.swe_raw, fill = grade)) +
   geom_density(alpha = 0.3) +
@@ -688,7 +696,7 @@ p_swe_3 <- b1_clean %>%
   theme_classic()
 
 # t2 swe density
-p_swe_4 <- b2_clean %>% 
+p_swe_d2 <- b2_clean %>% 
   drop_na(t2.swe_raw) %>% 
   ggplot(aes(x = t2.swe_raw, fill = grade)) +
   geom_density(alpha = 0.3) +
@@ -701,7 +709,7 @@ p_swe_4 <- b2_clean %>%
   theme_classic()
 
 # arrange side by side
-ggarrange(p_swe_3, p_swe_4, common.legend = TRUE, legend = "bottom")
+ggarrange(p_swe_d1, p_swe_d2, common.legend = TRUE, legend = "bottom")
 
 ```
 
@@ -709,7 +717,7 @@ ggarrange(p_swe_3, p_swe_4, common.legend = TRUE, legend = "bottom")
 ```{r swe scatter, echo=F, message=F, fig.width=10, fig.height=5}
 
 # t1 swe scatter (x = age, y = raw)
-p_swe_1 <- b1_clean %>% 
+p_swe_s1 <- b1_clean %>% 
   drop_na(t1.swe_raw) %>% 
   ggplot(aes(x = t1.age, y = t1.swe_raw)) + 
   geom_point(aes(color = grade)) +
@@ -722,7 +730,7 @@ p_swe_1 <- b1_clean %>%
   theme_light()
 
 # t2 swe scatter (x = age, y = raw)
-p_swe_2 <- b2_clean %>% 
+p_swe_s2 <- b2_clean %>% 
   drop_na(t2.swe_raw) %>% 
   ggplot(aes(x = t2.age, y = t2.swe_raw)) + 
   geom_point(aes(color = grade)) +
@@ -735,7 +743,7 @@ p_swe_2 <- b2_clean %>%
   theme_light()
 
 # arrange side by side
-ggarrange(p_swe_1, p_swe_2, common.legend = TRUE, legend = "bottom")
+ggarrange(p_swe_s1, p_swe_s2, common.legend = TRUE, legend = "bottom")
 
 ```
 
@@ -744,7 +752,7 @@ ggarrange(p_swe_1, p_swe_2, common.legend = TRUE, legend = "bottom")
 ```{r swe t1-t2, echo=F, message=F, fig.width=8, fig.height=5}
 
 # t1-t2 swe scatterplot of raw scores
-p_swe_5 <- b_both %>% 
+p_swe_12 <- b_both %>% 
   drop_na(t1.swe_raw, t2.swe_raw) %>% 
   ggplot(aes(x = t1.swe_raw, y = t2.swe_raw)) + 
     geom_point(aes(color = grade)) +
@@ -754,7 +762,7 @@ p_swe_5 <- b_both %>%
          y = "T2 Raw Score") +
   theme_light()
 
-p_swe_5
+p_swe_12
 
 # linear regression (t2 raw ~ t1 raw)
 lm_swe <- lm(t2.swe_raw ~ t1.swe_raw, data = b_both)
@@ -802,7 +810,7 @@ ggarrange(p_pde_b1, p_pde_b2, common.legend = TRUE, legend = "bottom")
 ```{r pde density, echo=F, fig.width=10, fig.height=5}
 
 # t1 pde density
-p_pde_3 <- b1_clean %>% 
+p_pde_d1 <- b1_clean %>% 
   drop_na(t1.pde_raw) %>% 
   ggplot(aes(x = t1.pde_raw, fill = grade)) +
   geom_density(alpha = 0.3) +
@@ -815,7 +823,7 @@ p_pde_3 <- b1_clean %>%
   theme_classic()
 
 # t2 pde density
-p_pde_4 <- b2_clean %>% 
+p_pde_d2 <- b2_clean %>% 
   drop_na(t2.pde_raw) %>% 
   ggplot(aes(x = t2.pde_raw, fill = grade)) +
   geom_density(alpha = 0.3) +
@@ -828,7 +836,7 @@ p_pde_4 <- b2_clean %>%
   theme_classic()
 
 # arrange side by side
-ggarrange(p_pde_3, p_pde_4, common.legend = TRUE, legend = "bottom")
+ggarrange(p_pde_d1, p_pde_d2, common.legend = TRUE, legend = "bottom")
 
 ```
 
@@ -836,7 +844,7 @@ ggarrange(p_pde_3, p_pde_4, common.legend = TRUE, legend = "bottom")
 ```{r pde scatter, echo=F, message=F, fig.width=10, fig.height=5}
 
 # t1 pde scatter (x = age, y = raw)
-p_pde_1 <- b1_clean %>% 
+p_pde_s1 <- b1_clean %>% 
   drop_na(t1.pde_raw) %>% 
   ggplot(aes(x = t1.age, y = t1.pde_raw)) + 
   geom_point(aes(color = grade)) +
@@ -849,7 +857,7 @@ p_pde_1 <- b1_clean %>%
   theme_light()
 
 # t2 pde scatter (x = age, y = raw)
-p_pde_2 <- b2_clean %>% 
+p_pde_s2 <- b2_clean %>% 
   drop_na(t2.pde_raw) %>% 
   ggplot(aes(x = t2.age, y = t2.pde_raw)) + 
   geom_point(aes(color = grade)) +
@@ -862,7 +870,7 @@ p_pde_2 <- b2_clean %>%
   theme_light()
 
 # arrange side by side
-ggarrange(p_pde_1, p_pde_2, common.legend = TRUE, legend = "bottom")
+ggarrange(p_pde_s1, p_pde_s2, common.legend = TRUE, legend = "bottom")
 
 ```
 
@@ -870,7 +878,7 @@ ggarrange(p_pde_1, p_pde_2, common.legend = TRUE, legend = "bottom")
 ```{r pde t1-t2, echo=F, message=F, fig.width=8, fig.height=5}
 
 # t1-t2 pde scatterplot of raw scores
-p_pde_5 <- b_both %>% 
+p_pde_12 <- b_both %>% 
   drop_na(t1.pde_raw, t2.pde_raw) %>% 
   ggplot(aes(x = t1.pde_raw, y = t2.pde_raw)) + 
     geom_point(aes(color = grade)) +
@@ -880,7 +888,7 @@ p_pde_5 <- b_both %>%
          y = "T2 Raw Score") +
   theme_light()
 
-p_pde_5
+p_pde_12
 
 # linear regression (t2 raw ~ t1 raw)
 lm_pde <- lm(t2.pde_raw ~ t1.pde_raw, data = b_both)
@@ -949,7 +957,7 @@ T2
 ```{r w-j density, echo=F, fig.width=10, fig.height=5}
 
 # t1 wj density
-p_wj_3 <- b1_clean %>% 
+p_wj_d1 <- b1_clean %>% 
   drop_na(t1.wj_raw) %>% 
   ggplot(aes(x = t1.wj_raw, fill = grade)) +
   geom_density(alpha = 0.3) +
@@ -962,7 +970,7 @@ p_wj_3 <- b1_clean %>%
   theme_classic()
 
 # t2 wj density
-p_wj_4 <- b2_clean %>% 
+p_wj_d2 <- b2_clean %>% 
   drop_na(t2.wj_raw) %>% 
   ggplot(aes(x = t2.wj_raw, fill = grade)) +
   geom_density(alpha = 0.3) +
@@ -975,7 +983,7 @@ p_wj_4 <- b2_clean %>%
   theme_classic()
 
 # arrange side by side
-ggarrange(p_wj_3, p_wj_4, common.legend = TRUE, legend = "bottom")
+ggarrange(p_wj_d1, p_wj_d2, common.legend = TRUE, legend = "bottom")
 
 ```
 
@@ -983,7 +991,7 @@ ggarrange(p_wj_3, p_wj_4, common.legend = TRUE, legend = "bottom")
 ```{r w-j scatter, echo=F, message=F, fig.width=10, fig.height=5}
 
 # t1 w-J scatter (x = age, y = raw)
-p_wj_1 <- b1_clean %>% 
+p_wj_s1 <- b1_clean %>% 
   drop_na(t1.wj_raw) %>% 
   ggplot(aes(x = t1.age, y = t1.wj_raw)) + 
   geom_point(aes(color = grade)) +
@@ -996,7 +1004,7 @@ p_wj_1 <- b1_clean %>%
   theme_light()
 
 # t2 w-j scatter (x = age, y = raw)
-p_wj_2 <- b2_clean %>% 
+p_wj_s2 <- b2_clean %>% 
   drop_na(t2.wj_raw) %>% 
   ggplot(aes(x = t2.age, y = t2.wj_raw)) + 
   geom_point(aes(color = grade)) +
@@ -1009,7 +1017,7 @@ p_wj_2 <- b2_clean %>%
   theme_light()
 
 # arrange side by side
-ggarrange(p_wj_1, p_wj_2, common.legend = TRUE, legend = "bottom")
+ggarrange(p_wj_s1, p_wj_s2, common.legend = TRUE, legend = "bottom")
 
 ```
 
@@ -1017,7 +1025,7 @@ ggarrange(p_wj_1, p_wj_2, common.legend = TRUE, legend = "bottom")
 ```{r w-j t1-t2, echo=FALSE, message=F, fig.width=8, fig.height=6}
 
 # t1-t2 w-j scatterplot of raw scores
-p_wj_5 <- b_both %>% 
+p_wj_12 <- b_both %>% 
   drop_na(t1.wj_raw, t2.wj_raw) %>% 
   ggplot(aes(x = t1.wj_raw, y = t2.wj_raw)) + 
     geom_point(aes(color = grade)) +
@@ -1027,7 +1035,7 @@ p_wj_5 <- b_both %>%
          y = "T2 Raw Score") +
   theme_light()
 
-p_wj_5
+p_wj_12
 
 # linear regression (t2 raw ~ t1 raw)
 lm_wj <- lm(t2.wj_raw ~ t1.wj_raw, data = b_both)
