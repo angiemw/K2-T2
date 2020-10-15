@@ -1,0 +1,420 @@
+---
+title: "Synapse K2 Project: T1-T2 Behavioral Data"
+author: "Angie Wang"
+date: "10/15/2020"
+output: 
+  html_document:
+    theme: spacelab
+    toc: true
+    toc_float: true
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# load libraries
+library(Hmisc)      # for correlation matrix
+library(psych)      # for descriptive statistics
+library(knitr)      # for knitting to pdf
+library(kableExtra) # for making pretty tables
+library(ggpubr)     # for arranging plots
+library(corrplot)   # for making correlogram
+library(forcats)    # for reordering factor levels
+library(tidyverse)  # for data wrangling
+
+# variable naming:
+# cc = ctopp color
+# cl = ctopp letter
+# ce = ctopp elision
+# swe = towre swe
+# pde = towre pde
+# wj = w-j letter-word id
+
+# datafile: t1-t2.csv
+
+```
+
+<br><br><br>
+
+# Background
+
+The K-2 project is a multi-time point study with Kindergarteners, 1st graders, and 2nd graders (ages 5 to 8) at Synapse. This report outlines the behavioral data that we collected in Time 1 (in-person) and Time 2 (remote).
+
+**N = 43** students participated in both time points. Individual assessments may show fewer students due to incomplete or invalid assessments in one or both time points.
+
+| T1 | T2 |
+|-|-|
+| Oct - Dec 2019 (beginning of school year) | May - Jun 2020 (end of school year) |
+| In-person | Remote, via Zoom |
+| CTOPP Color<br>CTOPP Letter<br>TOWRE (Form A)<br>W-J Letter-Word ID (Form C) | CTOPP Color<br>CTOPP Letter<br>TOWRE (Form B)<br>W-J Letter-Word ID (Form A)<br>CTOPP Elision |
+
+```{r load data, include=FALSE}
+
+# this file contains t1 and t2 data (N=43), with added columns manually coded for rank order grouping
+
+b_both <- read_csv("t1-t2.csv", col_names = TRUE, na = "NA") %>% 
+  mutate(grade = fct_relevel(grade,"K", "1", "2")) # reorder factors for plotting
+
+```
+
+<br><br><br>
+
+# Descriptive Statistics 
+
+```{r t1 desc stats, echo=FALSE}
+
+# descriptive stats
+b_both_desc <- b_both %>% 
+  select(- c(pid, grade, t1.age_year, 
+             t1.ctopp_c_raw_group,
+             t1.ctopp_l_raw_group,
+             t1.swe_raw_group,
+             t1.pde_raw_group,
+             t1.wj_raw_group)) %>%
+  describe() 
+
+# format table for rendered html
+kable(b_both_desc, digits = 3) %>%  # round to 3 digits
+  kable_styling(bootstrap_options = c("striped", "hover"),
+                fixed_thead = T,
+                font_size = 11)
+
+```
+
+
+<br><br><br>
+
+
+# Measuring Growth Over the School Year
+
+*How are things changing over the school year at Synapse?*
+
+<br><br>
+
+The following figures show the relationship between scores in T1 and T2. For each of the figures: 
+
+* **Each point represents a group of 4-5 students**, color-coded by grade. Students were grouped according to how their T1 score ranked within their grade. Raw scores were then averaged within each group.
+
+* The T1 score is on the x-axis, and the T2 score is on the y-axis.* 
+
+* "Better performance" is in the upper right quadrant, and "worse performance" is in the lower left quadrant.
+
+* **The dashed grey line is the identity line**, which represents no change between T1 and T2 scores (e.g., T1 score = 20, and T2 score = 20). The space above the identity line represents positive growth (i.e., improvement in T2). The space below is negative growth.
+  
+* **The solid black line is the linear regression line**, which is the best-fitting line through the data points**, and represents a prediction of T2 scores based on scores from T1. The vertical distance between a point and the regression line represents the errors of prediction.
+
+<br>
+
+Footnotes:
+
+*For CTOPP Color Naming and CTOPP Letter Naming, where the raw score is the "time to finish," values on both axes have been flipped so that the figures can be interpreted in the same way as the other assessments that have a "number correct" raw score.
+
+**The regression line is fitted on non-aggregated data (i.e., prior to grouping by T1 score rank). 
+
+<br><br><br>
+
+## CTOPP Rapid Color Naming
+
+The Color Naming raw score is the **time (in seconds)** it takes to name all the colors on the page (lower raw score number = better performance).
+
+This figure shows the performance of students who completed the assessment at both time points (N = 43). Students were grouped based on their T1 raw score rank within their grade.
+
+```{r ctopp color t1-t2, echo=F, message=F, warning=F, fig.width=8.5, fig.height=8}
+
+# group data and average based on t1 rank
+cc_grouped <- b_both %>% 
+  select(grade, t1.ctopp_c_raw, t1.ctopp_c_raw_group, t2.ctopp_c_raw) %>% 
+  group_by(grade, t1.ctopp_c_raw_group) %>% 
+  summarise(t1.ctopp_c_groupavg = mean(t1.ctopp_c_raw),
+            t2.ctopp_c_groupavg = mean(t2.ctopp_c_raw))
+
+# linear regression
+lm_cc <- lm(t2.ctopp_c_raw ~ t1.ctopp_c_raw, data = b_both)
+
+# plot scatter of grouped data
+p_cc_12 <- ggplot(cc_grouped, aes(x = t1.ctopp_c_groupavg, 
+                                  y = t2.ctopp_c_groupavg)) + 
+  geom_point(aes(color = grade), size = 10) +
+  geom_smooth(aes(x = t1.ctopp_c_raw, y = t2.ctopp_c_raw), 
+              data = b_both, 
+              method=  lm, 
+              se = F,
+              color = "black",
+              fullrange = T) + # regression line on ungrouped data
+  geom_abline(slope=1, intercept=0, linetype=2, color="grey") + # identity line
+  xlim(60, 20) +
+  ylim(60, 20) +
+  labs(title = "Rapid Color Naming (N = 43, grouped)", 
+       x = "T1 Raw Score",
+       y = "T2 Raw Score") +
+  theme_light()
+
+p_cc_12
+
+```
+
+<br><br><br>
+
+## CTOPP Rapid Letter Naming
+
+The Letter Naming raw score is the **time (in seconds)** it takes to name all the letters on the page (lower raw score = better performance).
+
+This figure shows the performance of students who completed the assessment at both time points (N = 42). Students were grouped based on their T1 raw score rank within their grade.
+
+```{r ctopp letter t1-t2, echo=F, message=F, warning=F, fig.width=8.5, fig.height=8}
+
+# group data and average based on t1 rank
+cl_grouped <- b_both %>% 
+  select(grade, t1.ctopp_l_raw, t1.ctopp_l_raw_group, t2.ctopp_l_raw) %>% 
+  group_by(grade, t1.ctopp_l_raw_group) %>% 
+  summarise(t1.ctopp_l_groupavg = mean(t1.ctopp_l_raw),
+            t2.ctopp_l_groupavg = mean(t2.ctopp_l_raw))
+
+# linear regression
+lm_cl <- lm(t2.ctopp_l_raw ~ t1.ctopp_l_raw, data = b_both)
+
+# plot scatter of grouped data
+p_cl_12 <- cl_grouped %>% 
+  drop_na(t1.ctopp_l_groupavg, t2.ctopp_l_groupavg) %>%
+  ggplot(aes(x = t1.ctopp_l_groupavg, 
+             y = t2.ctopp_l_groupavg,
+             color = grade)) + 
+  geom_point(size = 10) +
+  xlim(60, 10) +
+  ylim(60, 10) +
+  geom_smooth(aes(x = t1.ctopp_l_raw, y = t2.ctopp_l_raw), 
+              data = b_both, 
+              method = lm, 
+              se = F,
+              color = "black",
+              fullrange = T) + # regression line on ungrouped data
+  geom_abline(slope=1, intercept=0, linetype=2, color="grey") + # identity line
+  labs(title = "Rapid Letter Naming (N = 42, grouped)", 
+       x = "T1 Raw Score",
+       y = "T2 Raw Score") +
+  theme_light()
+
+p_cl_12
+
+```
+
+<br><br><br>
+
+## TOWRE Sight Word Efficiency
+
+The Sight Word Efficiency (SWE) raw score is the **number of words read correctly** in 45 seconds.
+
+This figure shows the performance of students who completed the assessment at both time points (N = 42). Students were grouped based on their T1 raw score rank within their grade.
+
+```{r swe t1-t2, echo=F, message=F, warning=F, fig.width=8.5, fig.height=8}
+
+# group data and average based on t1 rank
+swe_grouped <- b_both %>% 
+  select(grade, t1.swe_raw, t1.swe_raw_group, t2.swe_raw) %>% 
+  group_by(grade, t1.swe_raw_group) %>% 
+  summarise(t1.swe_groupavg = mean(t1.swe_raw),
+            t2.swe_groupavg = mean(t2.swe_raw))
+
+# linear regression
+lm_swe <- lm(t2.swe_raw ~ t1.swe_raw, data = b_both)
+
+# plot scatter of grouped data
+p_swe_12 <- swe_grouped %>% 
+  drop_na(t1.swe_groupavg, t2.swe_groupavg) %>% 
+  ggplot(aes(x = t1.swe_groupavg, 
+             y = t2.swe_groupavg,
+             color = grade)) + 
+    geom_point(size = 10) +
+    geom_smooth(aes(x = t1.swe_raw, y = t2.swe_raw), 
+              data = b_both, 
+              method = lm, 
+              se = F,
+              color = "black",
+              fullrange = T) + # regression line on ungrouped data
+    geom_abline(slope=1, intercept=0, linetype=2, color="grey") + # identity line
+    xlim(0, 80) +
+    ylim(0, 80) +
+    labs(title = "Sight Word Efficiency (N = 42, grouped)", 
+         x = "T1 Raw Score",
+         y = "T2 Raw Score") +
+  theme_light()
+
+p_swe_12
+
+```
+
+<br><br><br>
+
+## TOWRE Phonemic Decoding Efficiency
+
+The Phonemic Decoding Efficiency (PDE) raw score is the **number of non-words read correctly** in 45 seconds.
+
+This figure shows the performance of students who completed the assessment at both time points (N = 38). Students were grouped based on their T1 raw score rank within their grade.
+
+```{r pde t1-t2, echo=F, message=F, warning=F, fig.width=8.5, fig.height=8}
+
+# group data and average based on t1 rank
+pde_grouped <- b_both %>% 
+  select(grade, t1.pde_raw, t1.pde_raw_group, t2.pde_raw) %>% 
+  group_by(grade, t1.pde_raw_group) %>% 
+  summarise(t1.pde_groupavg = mean(t1.pde_raw),
+            t2.pde_groupavg = mean(t2.pde_raw))
+
+# linear regression
+lm_pde <- lm(t2.pde_raw ~ t1.pde_raw, data = b_both)
+
+# plot scatter of grouped data
+p_pde_12 <- pde_grouped %>% 
+  drop_na(t1.pde_groupavg, t2.pde_groupavg) %>% 
+  ggplot(aes(x = t1.pde_groupavg, 
+             y = t2.pde_groupavg,
+             color = grade)) + 
+    geom_point(size = 10) +
+    geom_smooth(aes(x = t1.pde_raw, y = t2.pde_raw), 
+              data = b_both, 
+              method = lm, 
+              se = F,
+              color = "black",
+              fullrange = T) + # regression line on ungrouped data
+    geom_abline(slope=1, intercept=0, linetype=2, color="grey") + # identity line
+    xlim(0, 45) +
+    ylim(0, 45) +
+    labs(title = "Phonemic Decoding Efficiency (N = 38, grouped)", 
+         x = "T1 Raw Score",
+         y = "T2 Raw Score") +
+  theme_light()
+
+p_pde_12
+
+```
+
+<br><br><br>
+
+## W-J Letter-Word Identification
+
+The Letter-Word Identification raw score is the **number of items answered correctly** before reaching the ceiling rule (6 highest items that were administered are incorrect).
+
+This figure shows the performance of students who completed the assessment at both time points (N = 43). Students were grouped based on their T1 raw score rank within their grade.
+
+```{r w-j t1-t2, echo=FALSE, message=F, warning=F, fig.width=8.5, fig.height=8}
+
+# group data and average based on t1 rank
+wj_grouped <- b_both %>% 
+  select(grade, t1.wj_raw, t1.wj_raw_group, t2.wj_raw) %>% 
+  group_by(grade, t1.wj_raw_group) %>% 
+  summarise(t1.wj_groupavg = mean(t1.wj_raw),
+            t2.wj_groupavg = mean(t2.wj_raw))
+
+# linear regression
+lm_wj <- lm(t2.wj_raw ~ t1.wj_raw, data = b_both)
+
+# plot scatter based on grouped data
+p_wj_12 <- wj_grouped %>% 
+  drop_na(t1.wj_groupavg, t2.wj_groupavg) %>% 
+  ggplot(aes(x = t1.wj_groupavg, y = t2.wj_groupavg, color = grade)) + 
+    geom_point(size = 10) +
+    geom_smooth(aes(x = t1.wj_raw, y = t2.wj_raw), 
+              data = b_both, 
+              method = lm, 
+              se = F,
+              color = "black",
+              fullrange = T) + # regression line
+    geom_abline(slope=1, intercept=0, linetype=2, color="grey") +
+    xlim(0, 70) +
+    ylim(0, 70) +
+    labs(title = "Letter-Word Identification (N = 43, grouped)", 
+         x = "T1 Raw Score",
+         y = "T2 Raw Score") +
+  theme_light()
+
+p_wj_12
+
+```
+
+# Correlation Structure
+
+*How are the various measures related?*
+
+<br><br>
+
+For each subject, the "growth" value is the difference between T1 and T2 raw scores (difference = T1 - T2 for raw scores that are "time to finish"; difference = T2 - T1 for raw scores that are "number correct"). 
+
+The following figures show correlations of these differences across the five measures that were administered in both time points.
+
+```{r correlations between time points, echo=F}
+
+# calculate differences between time points
+b_diff <- b_both %>% 
+  mutate(ctopp_c_diff = (t1.ctopp_c_raw - t2.ctopp_c_raw),
+         ctopp_l_diff = (t1.ctopp_l_raw - t2.ctopp_l_raw),
+         swe_diff = (t2.swe_raw - t1.swe_raw),
+         pde_diff = (t2.pde_raw - t1.pde_raw),
+         wj_diff = (t2.wj_raw - t1.wj_raw)) %>% 
+  select(grade, ctopp_c_diff, ctopp_l_diff, swe_diff, pde_diff, wj_diff)
+
+# compute correlation on differences
+b_diff_corr <- b_diff %>% 
+  select(-grade) %>% 
+  cor(use = "na.or.complete")
+
+# plot correlation matrix
+p_corr_1 = corrplot(b_diff_corr, method = "color")
+p_corr_2 = corrplot(b_diff_corr, method = "number")
+    
+```
+
+## By grade
+
+### Kindergarten
+
+```{r correlations between time points, kindergarten, echo=F}
+
+# same thing as above but only with kindergartners
+b_diff_corr_K <- b_diff %>% 
+  filter(grade == "K") %>% 
+  select(- grade) %>% 
+  cor(use = "na.or.complete")
+
+# plot side by side
+par(mfrow=c(1,2))
+p_corr_gk_1 <- corrplot(b_diff_corr_K, method = "color")
+p_corr_gk_2 <- corrplot(b_diff_corr_K, method = "number")
+
+
+    
+```
+
+### First Grade
+
+```{r correlations between time points, first grade, echo=F}
+
+# same thing as above but only with first graders
+b_diff_corr_1 <- b_diff %>% 
+  filter(grade == "1") %>% 
+  select(- grade) %>% 
+  cor(use = "na.or.complete")
+
+# plot side by side
+par(mfrow=c(1,2))
+p_corr_g1_1 = corrplot(b_diff_corr_1, method = "color")
+p_corr_g1_2 = corrplot(b_diff_corr_1, method = "number")
+    
+```
+
+### Second Grade
+
+```{r correlations between time points, second grade, echo=F}
+
+# same thing as above but only with second graders
+b_diff_corr_2 <- b_diff %>% 
+  filter(grade == "2") %>% 
+  select(- grade) %>% 
+  cor(use = "na.or.complete")
+
+# plot side by side
+par(mfrow=c(1,2))
+p_corr_g2_1 = corrplot(b_diff_corr_2, method = "color")
+p_corr_g2_2 = corrplot(b_diff_corr_2, method = "number")
+    
+```
