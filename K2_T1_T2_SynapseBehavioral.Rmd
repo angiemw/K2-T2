@@ -1,7 +1,7 @@
 ---
 title: 'K-2: T1-T2 visualizations for Synapse audience'
 author: "Angie Wang"
-date: "11/02/2020"
+date: "11/04/2020"
 output:
   html_document:
     theme: spacelab
@@ -70,12 +70,6 @@ b_both_desc <- b_both %>%
              t1.pde_raw_group,
              t1.wj_raw_group)) %>%
   describe() 
-
-# format table for rendered html
-kable(b_both_desc, digits = 3) %>%  # round to 3 digits
-  kable_styling(bootstrap_options = c("striped", "hover"),
-                fixed_thead = T,
-                font_size = 11)
 
 ```
 
@@ -198,7 +192,13 @@ p_wj_scatter <- wj_grouped %>%
          x = "T1 Score (# of correct items)",
          y = "Growth (T2 - T1)") +
   theme_light() +
-  scale_color_manual(values=c("#007dba", "#9ea2a2", "#000000"))
+  scale_color_manual(values=c("#007dba", "#9ea2a2", "#000000")) +
+  theme(plot.title = element_text(hjust = 0.5, size = 25),
+        axis.title.x = element_text(size = 25),
+        axis.title.y = element_text(size = 25),
+        axis.text = element_text(size=18),
+        legend.title = element_text(size=18),
+        legend.text = element_text(size=18))
 
 p_wj_scatter
 #ggsave("wj_scatter.png")
@@ -266,7 +266,13 @@ p_swe_scatter <- swe_grouped %>%
        x = "T1 Score (# words per minute)",
        y = "Growth (T2 - T1)") +
   theme_light() +
-  scale_color_manual(values=c("#007dba", "#9ea2a2", "#000000"))
+  scale_color_manual(values=c("#007dba", "#9ea2a2", "#000000")) +
+  theme(plot.title = element_text(hjust = 0.5, size = 25),
+        axis.title.x = element_text(size = 25),
+        axis.title.y = element_text(size = 25),
+        axis.text = element_text(size=18),
+        legend.title = element_text(size=18),
+        legend.text = element_text(size=18))
 
 p_swe_scatter
 #ggsave("swe_scatter.png")
@@ -325,7 +331,13 @@ p_pde_scatter <- pde_grouped %>%
        x = "T1 Score (# nonwords per minute)",
        y = "Growth (T2 - T1)") +
   theme_light() +
-  scale_color_manual(values=c("#007dba", "#9ea2a2", "#000000"))
+  scale_color_manual(values=c("#007dba", "#9ea2a2", "#000000")) +
+  theme(plot.title = element_text(hjust = 0.5, size = 25),
+        axis.title.x = element_text(size = 25),
+        axis.title.y = element_text(size = 25),
+        axis.text = element_text(size=18),
+        legend.title = element_text(size=18),
+        legend.text = element_text(size=18))
 
 p_pde_scatter
 #ggsave("pde_scatter.png")
@@ -367,7 +379,13 @@ p_pde_ungrouped <- b_both %>%
          x = "T1 Score (# nonwords per minute)",
          y = "Growth (T2 - T1)") +
   theme_light() +
-  scale_color_manual(values=c("#007dba", "#9ea2a2", "#000000"))
+  scale_color_manual(values=c("#007dba", "#9ea2a2", "#000000")) +
+  theme(plot.title = element_text(hjust = 0.5, size = 25),
+        axis.title.x = element_text(size = 25),
+        axis.title.y = element_text(size = 25),
+        axis.text = element_text(size=18),
+        legend.title = element_text(size=18),
+        legend.text = element_text(size=18))
 
 p_pde_ungrouped
 #ggsave("pde_scatter_ungrouped.png")
@@ -380,7 +398,7 @@ p_pde_ungrouped
 
 Each point in the dotplot represents the average subtest score by time point (split by grade).
 
-```{r towre overall dotplot, echo=F, message=F, warning=F, fig.width=8, fig.height=5}
+```{r towre overall dotplot, echo=F, message=F, warning=F, fig.width=12, fig.height=8}
 
 # arrange data----------------------------------------------------------------
 towre_overall <- b_both %>% 
@@ -395,7 +413,7 @@ towre_overall <- b_both %>%
 
 
 # plot dotplot------------------------------------------------
-p_towre_overall <- ggplot(towre_overall, aes(x = time, y = mean, fill = subtest)) + 
+p_towre_dotplot <- ggplot(towre_overall, aes(x = time, y = mean, fill = subtest)) + 
   
   geom_dotplot(binaxis = 'y', stackdir='center', dotsize = 2) +
   facet_grid(. ~ grade) +
@@ -408,12 +426,50 @@ p_towre_overall <- ggplot(towre_overall, aes(x = time, y = mean, fill = subtest)
   
   theme_light() +
   theme(strip.text.x = element_text(size=15, color="black", face="bold")) +
+  scale_fill_manual(values=c("#007dba", "#9ea2a2", "#000000")) + # synapse colors
+  theme(plot.title = element_text(hjust = 0.5, size = 25),
+        axis.title.x = element_text(size = 25),
+        axis.title.y = element_text(size = 25),
+        axis.text = element_text(size=18),
+        legend.title = element_text(size=18),
+        legend.text = element_text(size=18))
 
-  scale_color_manual(values=c("#007dba", "#9ea2a2", "#000000")) # synapse colors
 
+p_towre_dotplot
+#ggsave("towre_dotplot.png")
 
-p_towre_overall
-#ggsave("towre_overall.png", p_towre_overall)
+```
+
+```{r pde, include=F, fig.width=12, fig.height=8}
+
+p_pde_dotplot <- towre_overall %>% 
+  filter(subtest == "SWE") %>% 
+  ggplot(aes(x = time, y = mean)) + 
+  
+  # dotplot split by grade
+  geom_dotplot(binaxis = 'y', stackdir='center', 
+               dotsize = 2, fill = "#007dba") +
+  facet_grid(. ~ grade) +
+  
+  # lines connecting T1-T2
+  geom_line(aes(group = subtest), 
+            arrow = arrow(angle=30, length = unit(0.13, "cm"), type="open")) +
+  
+  # adjust appearance
+  labs(title = "Phonemic Decoding Efficiency (PDE): Overall averages by grade",
+       x = "Time Point",
+       y = "Score (items per minute)") +
+  theme_light() +
+  theme(strip.text.x = element_text(size=15, color="black", face="bold")) +
+  theme(plot.title = element_text(hjust = 0.5, size = 25),
+        axis.title.x = element_text(size = 25),
+        axis.title.y = element_text(size = 25),
+        axis.text = element_text(size=18),
+        legend.title = element_text(size=18),
+        legend.text = element_text(size=18))
+
+p_pde_dotplot
+#ggsave("pde_dotplot.png")
 
 ```
 
@@ -462,7 +518,13 @@ p_cc_scatter <- ggplot(cc_grouped, aes(x = t1.ctopp_c_groupavg,
        x = "T1 Score (items per minute)",
        y = "Growth (T2 - T1)") +
   theme_light() +
-  scale_color_manual(values=c("#007dba", "#9ea2a2", "#000000")) # synapse colors
+  scale_color_manual(values=c("#007dba", "#9ea2a2", "#000000")) + # synapse colors
+  theme(plot.title = element_text(hjust = 0.5, size = 25),
+        axis.title.x = element_text(size = 25),
+        axis.title.y = element_text(size = 25),
+        axis.text = element_text(size=18),
+        legend.title = element_text(size=18),
+        legend.text = element_text(size=18))
 
 p_cc_scatter
 #ggsave("color_scatter.png")
@@ -522,7 +584,13 @@ p_cl_scatter <- cl_grouped %>%
        x = "T1 Score (items per minute)",
        y = "Growth (T2 - T1)") +
   theme_light() +
-  scale_color_manual(values=c("#007dba", "#9ea2a2", "#000000")) # synapse colors
+  scale_color_manual(values=c("#007dba", "#9ea2a2", "#000000")) + # synapse colors
+  theme(plot.title = element_text(hjust = 0.5, size = 25),
+        axis.title.x = element_text(size = 25),
+        axis.title.y = element_text(size = 25),
+        axis.text = element_text(size=18),
+        legend.title = element_text(size=18),
+        legend.text = element_text(size=18))
 
 p_cl_scatter
 #ggsave("letter_scatter.png")
@@ -582,14 +650,20 @@ p_ran_scatter <- ggplot(ctopp_both) +
        x = "T1 Score (items per minute)",
        y = "Growth (T2 - T1)") +
   theme_light() +
-  scale_color_manual(values=c("#007dba", "#9ea2a2", "#000000")) # synapse colors
+  scale_color_manual(values=c("#007dba", "#9ea2a2", "#000000")) + # synapse colors
+  theme(plot.title = element_text(hjust = 0.5, size = 25),
+        axis.title.x = element_text(size = 25),
+        axis.title.y = element_text(size = 25),
+        axis.text = element_text(size=18),
+        legend.title = element_text(size=18),
+        legend.text = element_text(size=18))
 
 p_ran_scatter
 #ggsave("ctopp_scatter.png")
 
 ```
 
-```{r ctopp combined dotplot, echo=FALSE, message=F, fig.width=8, fig.height=5}
+```{r ctopp combined dotplot, echo=FALSE, message=F, fig.width=12, fig.height=8}
 
 # arrange data----------------------------------------------------------------
 ctopp_both_nogroup <- b_both %>% 
@@ -623,7 +697,13 @@ p_ran_dotplot <- ggplot(ctopp_both_nogroup, aes(x = time, y = mean, fill = subte
        y = "Score (items per minute)") +
   theme_light() +
   theme(strip.text.x = element_text(size=15, color="black", face="bold")) +
-  scale_color_manual(values=c("#007dba", "#9ea2a2", "#000000")) # synapse colors
+  scale_fill_manual(values=c("#007dba", "#9ea2a2", "#000000")) + # synapse colors
+  theme(plot.title = element_text(hjust = 0.5, size = 25),
+        axis.title.x = element_text(size = 25),
+        axis.title.y = element_text(size = 25),
+        axis.text = element_text(size=18),
+        legend.title = element_text(size=18),
+        legend.text = element_text(size=18))
 
 p_ran_dotplot
 #ggsave("ctopp_dotplot.png")
@@ -755,7 +835,7 @@ p_corr_g2_2 = corrplot(b_diff_corr_2, method = "number")
 
 ## LWID and SWE Growth Correlation
 
-```{r lwid and swe correlation by individuals, echo=F, message=F, warning=F, fig.width=8.5, fig.height=8}
+```{r lwid and swe correlation by individuals, echo=F, message=F, warning=F, fig.width=12.5, fig.height=12}
 
 # plot scatter with individual points---------------------------------------
 p_wj_swe_ungrouped <- ggplot(b_both, aes(x = wj_diff, y = swe_diff)) + 
@@ -767,7 +847,7 @@ p_wj_swe_ungrouped <- ggplot(b_both, aes(x = wj_diff, y = swe_diff)) +
   # regression line by grade
   geom_smooth(aes(x = wj_diff, y = swe_diff, color = grade), 
               method=  lm, 
-              se = F,
+              se = T,
               fullrange = F) + 
   
   # scatterplot individual points
@@ -775,12 +855,17 @@ p_wj_swe_ungrouped <- ggplot(b_both, aes(x = wj_diff, y = swe_diff)) +
   
   # adjust appearance
   xlim(-5, 27) +
-  ylim(-5, 35) +
   labs(title = "Relationship between growth on LWID and growth on SWE (N = 42)", 
        x = "LWID Growth (T2 change in # words read)",
        y = "SWE Growth (T2 change in # words read per minute)") +
   theme_light() +
-  scale_color_manual(values=c("#007dba", "#9ea2a2", "#000000"))
+  scale_color_manual(values=c("#007dba", "#9ea2a2", "#000000")) +
+  theme(plot.title = element_text(hjust = 0.5, size = 25),
+        axis.title.x = element_text(size = 25),
+        axis.title.y = element_text(size = 25),
+        axis.text = element_text(size=18),
+        legend.title = element_text(size=18),
+        legend.text = element_text(size=18))
 
 p_wj_swe_ungrouped
 #ggsave("wj_swe_growthCorrelation.png")
